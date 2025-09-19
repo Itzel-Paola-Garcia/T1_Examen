@@ -1,5 +1,5 @@
 // js/control.js
-const DEVICES_API = "https://68cc9d85716562cf5077edc6.mockapi.io/api/v1/devices";
+const DEVICES_API = "https://cors-anywhere.herokuapp.com/https://68cc9d85716562cf5077edc6.mockapi.io/api/v1/devices";
 const STATUS_API  = "https://68cc9d85716562cf5077edc6.mockapi.io/api/v1/status";
 
 const POLL_INTERVAL = 2000;
