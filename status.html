@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Estado Dispositivos IoT</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body { background:#f8f9fa; }
+    table { background:#fff; }
+    th, td { vertical-align: middle !important; }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">IoT Control</a>
+      <div class="collapse navbar-collapse">
+        <ul class="navbar-nav me-auto">            
+          <li class="nav-item"><a class="nav-link" href="index.html">Admin</a></li>
+          <li class="nav-item"><a class="nav-link" href="control.html">Control</a></li>
+          <li class="nav-item"><a class="nav-link active" href="#">Status</a></li>
+        </ul>
+        <span class="navbar-text text-white">Sistema de limpieza con IoT</span>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container py-4">
+    <h3>Últimos 10 dispositivos modificados</h3>
+    <div class="table-responsive">
+      <table class="table table-bordered table-striped mt-3">
+        <thead class="table-dark">
+          <tr>
+            <th>Dispositivo</th>
+            <th>Tipo</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody id="statusBody">
+          <tr><td colspan="3" class="text-center">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <footer class="bg-dark text-white text-center py-3 mt-4">
+    <div class="container">Desarrollado por: Itzel Paola Garcia Lugo</div>
+  </footer>
+
+  <script>
+    const DEVICES_API = "https://68cc9d85716562cf5077edc6.mockapi.io/api/v1/devices";
+    const REFRESH_INTERVAL = 2000;
+    const statusBody = document.getElementById("statusBody");
+
+    function parseActivo(dev) {
+      const a = dev.Activo ?? dev.activo ?? dev.isOnline;
+      if (a === undefined || a === null) return true;
+      if (typeof a === "boolean") return a;
+      if (typeof a === "string") return a.toLowerCase() === "si" || a.toLowerCase() === "true";
+      return Boolean(a);
+    }
+
+    function parseDeviceStatus(tipo, dev) {
+      tipo = (tipo||"").toLowerCase();
+      const modo = (dev.Modo || dev.modo || "").toString().toLowerCase();
+      const activo = parseActivo(dev);
+
+      if(tipo === "robot") {
+        if(!activo) return "Apagado";
+        if(["limpieza","reposo","apagado","cargando"].includes(modo)) return modo;
+        return "Reposo";
+      }
+      if(tipo === "dock") {
+        if(!activo) return "Apagado";
+        if(["reposo","en uso","apagado"].includes(modo)) return modo;
+        return "Reposo";
+      }
+      if(tipo === "sensor") {
+        if(!activo) return "Apagado";
+        if(["reportando","apagado"].includes(modo)) return modo;
+        return "Reportando";
+      }
+      return "Desconocido";
+    }
+
+    async function loadStatus() {
+      try {
+        const devices = await (await fetch(DEVICES_API)).json();
+
+        // Orden descendente por última modificación y tomar solo 10
+        const latestDevices = devices
+          .sort((a,b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt))
+          .slice(0, 10);
+
+        statusBody.innerHTML = "";
+
+        latestDevices.forEach(dev => {
+          const nombre = dev.name || dev.Nombre || "Sin nombre";
+          const tipo   = dev.tipo || dev.Tipo || dev.type || "";
+          const estado = parseDeviceStatus(tipo, dev);
+
+          statusBody.innerHTML += `
+            <tr>
+              <td>${nombre} (${dev.id})</td>
+              <td>${tipo.charAt(0).toUpperCase() + tipo.slice(1)}</td>
+              <td>${estado}</td>
+            </tr>
+          `;
+        });
+
+        if(statusBody.children.length === 0) {
+          statusBody.innerHTML = `<tr><td colspan="3" class="text-center">No hay dispositivos registrados</td></tr>`;
+        }
+
+      } catch(err) {
+        console.error("Error cargando dispositivos:", err);
+        statusBody.innerHTML = `<tr><td colspan="3" class="text-center">Error cargando datos</td></tr>`;
+      }
+    }
+
+    // Inicial y refresco cada 2 segundos
+    loadStatus();
+    setInterval(loadStatus, REFRESH_INTERVAL);
+  </script>
+
+</body>
+</html>
+html>
