@@ -8,9 +8,9 @@ const OBSTACLE_INTERVAL = 300000; // 5 min
 const CHARGE_STEP_MS = 1000; // incremento cada 1s
 const CHARGE_STEP_AMOUNT = 5; // +5 por segundo
 
-const IMG_ROBOT = "/images/robot.jpg";
-const IMG_DOCK  = "/images/dock.jpg";
-const IMG_SENSOR= "/images/sensor.jpg";
+const IMG_ROBOT = "images/robot.jpg";
+const IMG_DOCK  = "images/dock.jpg";
+const IMG_SENSOR= "images/sensor.jpg";
 
 const roomContent = document.getElementById("roomContent");
 const roomTabs = document.getElementById("roomTabs");
